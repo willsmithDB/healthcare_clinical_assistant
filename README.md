@@ -50,7 +50,7 @@ The Clinical Assistant is designed to follow the workflow of a healthcare provid
 ### Prerequisites
 
 - Databricks workspace with Unity Catalog enabled
-- Access to HealthVerity dataset (`healthverity_patient_dataset.hv_claims_sample` catalog)
+- Access to HealthVerity dataset (`HealthVerity_Claims_Sample_Patient_Dataset.hv_claims_sample` catalog)
    - You can create a read-only catalog from the Databricks Marketplace under Claims Sample Patient Dataset
 - MLflow and AI Agent Framework permissions
 
@@ -64,10 +64,12 @@ The Clinical Assistant is designed to follow the workflow of a healthcare provid
    ```
 
 2. **Configure the Environment**
-   - Update `clinical-assistant-agent/config.yaml` with your workspace settings:
+   - **IMPORTANT**: Update `clinical-assistant-agent/config.yaml` with your workspace settings before using the system:
      - Catalog and schema names
      - Model names and endpoints
      - Default patient/admission IDs for testing
+     - Experiment ID for MLflow tracking
+     - User email addresses for monitoring
 
 3. **Set Up Clinical Tools**
    - Run `clinical-assistant-agent/01_create_clinical_assistant_tools.py` to create SQL functions
@@ -126,26 +128,31 @@ Extracts procedure information and healthcare services:
 - **Deployment**: Model serving endpoints with Unity Catalog registration
 
 ### Configuration Parameters
-The system uses `config.yaml` for centralized configuration:
+The system uses `config.yaml` for centralized configuration. **Note: These variables must be updated with your actual workspace values before use:**
 ```yaml
 # Source data (HealthVerity dataset)
-source_catalog_name: "healthverity_patient_dataset"
+source_catalog_name: "HealthVerity_Claims_Sample_Patient_Dataset"
 source_schema_name: "hv_claims_sample"
 
 # Target UC functions
-target_catalog_name: "CATALOG"
-target_schema_name: "SCHEMA"
+target_catalog_name: "CATALOG"  # Update with your catalog
+target_schema_name: "SCHEMA"    # Update with your schema
 
 # Sample data parameters
-service_date: "2023-01-15"
+service_date: "2021-12-21"
+claim_id: "12390dfb568442cb957d5b3cfefe1119"
 patient_id: "4baf3314e4a181c5effcf2751fbe1e21"
-diagnosis_code: "E11.9"
-ndc_code: "12345-6789-01"
+diagnosis_code: "Z79899"
+ndc_code: "65162027250"
 
 # Model configuration
-model_uc_name: "CATALOG.SCHEMA.healthverity_clinical_assistant_dev"
+model_uc_name: "CATALOG.SCHEMA.healthverity_clinical_assistant_dev"  # Update with your catalog/schema
 alias: "Champion"
-endpoint_name: "ws-clinical_assistant-healthverity"
+endpoint_name: "clinical_assistant_healthverity"
+
+# MLflow tracking
+experiment_id: "CHANGE_ME"  # Update with your experiment ID
+label_users: ["user@example.com"]  # Update with actual user emails
 ```
 
 ### Agent Variants
@@ -161,7 +168,7 @@ endpoint_name: "ws-clinical_assistant-healthverity"
 "What is the healthcare journey for patient 4baf3314e4a181c5effcf2751fbe1e21?"
 "What medications has patient 4baf3314e4a181c5effcf2751fbe1e21 been prescribed?"
 "What are the diagnosis codes for patient 4baf3314e4a181c5effcf2751fbe1e21?"
-"Show me the medical claims for patient 4baf3314e4a181c5effcf2751fbe1e21 on 2023-01-15"
+"Show me the medical claims for patient 4baf3314e4a181c5effcf2751fbe1e21 on 2021-12-21"
 "What procedures has patient 4baf3314e4a181c5effcf2751fbe1e21 had performed?"
 "What is the enrollment information for patient 4baf3314e4a181c5effcf2751fbe1e21?"
 ```
