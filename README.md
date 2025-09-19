@@ -1,4 +1,4 @@
-# Databricks HLS Clinical Assistant
+# Databricks HLS Medical Journey Agent
 
 A comprehensive healthcare AI assistant built on Databricks using HealthVerity's real-world healthcare dataset. This project demonstrates how to create, deploy, evaluate, and monitor clinical AI agents that can help healthcare professionals analyze patient healthcare journeys including medical claims, pharmacy data, diagnoses, and procedures.
 
