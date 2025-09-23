@@ -420,3 +420,7 @@ display(HTML(html_link))
 # Create HTML link to AI Playground
 html_link = f'<a href="https://{workspace_url}/ml/playground" target="_blank">Go to AI Playground</a>'
 display(HTML(html_link))
+
+# COMMAND ----------
+
+

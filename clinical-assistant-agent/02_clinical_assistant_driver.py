@@ -29,6 +29,27 @@
 
 # COMMAND ----------
 
+import yaml
+
+with open("config.yaml", "r") as f:
+    config = yaml.safe_load(f)
+
+source_catalog_name = config["source_catalog_name"]
+source_schema_name = config["source_schema_name"]
+target_catalog_name = config["target_catalog_name"]
+target_schema_name = config["target_schema_name"]
+service_date = config["service_date"]
+claim_id = config["claim_id"]
+patient_id = config["patient_id"]
+diagnosis_code = config["diagnosis_code"]
+ndc_code = config["ndc_code"]
+model_uc_name = config["model_uc_name"]
+alias = config["alias"]
+endpoint_name = config["endpoint_name"]
+experiment_id = config['experiment_id']
+
+# COMMAND ----------
+
 # MAGIC %%writefile agent.py
 # MAGIC from typing import Any, Generator, Optional, Sequence, Union
 # MAGIC
@@ -93,7 +114,7 @@
 # MAGIC
 # MAGIC #You can use UDFs in Unity Catalog as agent tools
 # MAGIC # HealthVerity clinical assistant tools
-# MAGIC uc_tool_names = ["users.will_smith.*"]
+# MAGIC uc_tool_names = [f"{target_catalog_name}.{target_schema_name}.*"]
 # MAGIC uc_toolkit = UCFunctionToolkit(function_names=uc_tool_names)
 # MAGIC tools.extend(uc_toolkit.tools)
 # MAGIC
@@ -218,6 +239,17 @@
 
 # COMMAND ----------
 
+added_var_content = f"""target_catalog_name = '{target_catalog_name}'\n
+target_schema_name = '{target_schema_name}'\n
+"""
+with open("agent.py", "r") as f:
+    existing_content = f.read()
+
+with open("agent.py", "w") as f:
+    f.write(added_var_content + existing_content)
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## Test the agent
 # MAGIC
@@ -252,8 +284,16 @@ experiment_id = config['experiment_id']
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC Note:
+# MAGIC **Mlflow experiement needs to be registered into your workspace folder (use absolute path like below). Repo folder wont work.**
+
+# COMMAND ----------
+
+# DBTITLE 1,make sure to provide a local absolute path
 import mlflow
-mlflow.set_experiment(experiment_id=experiment_id)
+# mlflow.create_experiment(name=experiment_id)
+mlflow.set_experiment(f"/Users/yang.yang@databricks.com/CCF_Workshop/{experiment_id}")
 
 # COMMAND ----------
 
@@ -276,6 +316,18 @@ for event in AGENT.predict_stream(
 # MAGIC - **TODO**: If your Unity Catalog Function queries a [vector search index](https://docs.databricks.com/generative-ai/agent-framework/unstructured-retrieval-tools.html) or leverages [external functions](https://docs.databricks.com/generative-ai/agent-framework/external-connection-tools.html), you need to include the dependent vector search index and UC connection objects, respectively, as resources. See [docs](https://docs.databricks.com/generative-ai/agent-framework/log-agent.html#specify-resources-for-automatic-authentication-passthrough) for more details.
 # MAGIC
 # MAGIC Log the agent as code from the `agent.py` file. See [MLflow - Models from Code](https://mlflow.org/docs/latest/models.html#models-from-code).
+
+# COMMAND ----------
+
+from agent import tools, LLM_ENDPOINT_NAME
+
+# COMMAND ----------
+
+tools
+
+# COMMAND ----------
+
+LLM_ENDPOINT_NAME
 
 # COMMAND ----------
 
@@ -310,16 +362,7 @@ with mlflow.start_run():
         python_model="agent.py",
         input_example=input_example,
         resources=resources,
-        extra_pip_requirements=[
-            "databricks-connect",
-            "mlflow==3.1.3",
-            "langchain== 0.3.26",
-            "langgraph==0.3.4",
-            "databricks-langchain==0.6.0",
-            "databricks-agents==1.2.0",
-            "pydantic==2.11.7",
-            "uv==0.8.0"
-        ]
+        pip_requirements="requirements.txt"
     )
 
 # COMMAND ----------
@@ -330,10 +373,11 @@ with mlflow.start_run():
 
 # COMMAND ----------
 
+# DBTITLE 1,env_manager please use 'uv'
 mlflow.models.predict(
     model_uri=f"runs:/{logged_agent_info.run_id}/agent",
     input_data={"messages": [{"role": "user", "content": f"What enrollment information do you have for patient {patient_id}?"}]},
-    env_manager="local",
+    env_manager="uv",
 )
 
 # COMMAND ----------
@@ -345,6 +389,11 @@ mlflow.models.predict(
 
 # COMMAND ----------
 
+# %pip install mlflow[databricks]
+
+# COMMAND ----------
+
+# DBTITLE 1,make sure you pip installed package mlflow[databricks]
 mlflow.set_registry_uri("databricks-uc")
 
 # register the model to UC
@@ -368,7 +417,7 @@ client.set_registered_model_alias(model_uc_name, "Champion", uc_registered_model
 
 # DBTITLE 1,Uncomment to create endpoint if needed
 from databricks import agents
-# agents.deploy(model_uc_name, uc_registered_model_info.version, tags = {"RemoveAfter": "10-31-2025"})
+agents.deploy(model_uc_name, uc_registered_model_info.version, tags = {"RemoveAfter": "10-31-2025"})
 
 # COMMAND ----------
 

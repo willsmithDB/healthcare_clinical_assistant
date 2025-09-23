@@ -1,3 +1,7 @@
+target_catalog_name = 'yyang'
+
+target_schema_name = 'ccf_workshop'
+
 from typing import Any, Generator, Optional, Sequence, Union
 
 import mlflow
@@ -61,7 +65,7 @@ tools = []
 
 #You can use UDFs in Unity Catalog as agent tools
 # HealthVerity clinical assistant tools
-uc_tool_names = ["users.will_smith.*"]
+uc_tool_names = [f"{target_catalog_name}.{target_schema_name}.*"]
 uc_toolkit = UCFunctionToolkit(function_names=uc_tool_names)
 tools.extend(uc_toolkit.tools)
 
