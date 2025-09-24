@@ -18,5 +18,6 @@ model_uc_name: "yyang.ccf_workshop.healthverity_clinical_assistant_dev"
 alias: "Champion"
 endpoint_name: "clinical_assistant_healthverity"
 
-experiment_id: "ccf_workshop_demo"
+#: please follow the example 'experiment_path' format. Note, it is an absolute path to your workspace folder. Usually you can put within your project code folder root path.
+experiment_path: "/Users/yang.yang@databricks.com/CCF_Workshop/ccf_workshop_demo"
 label_users: ["yang.yang@databricks.com"]

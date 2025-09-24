@@ -46,7 +46,7 @@ ndc_code = config["ndc_code"]
 model_uc_name = config["model_uc_name"]
 alias = config["alias"]
 endpoint_name = config["endpoint_name"]
-experiment_id = config['experiment_id']
+experiment_path = config['experiment_path']
 
 # COMMAND ----------
 
@@ -280,7 +280,7 @@ ndc_code = config["ndc_code"]
 model_uc_name = config["model_uc_name"]
 alias = config["alias"]
 endpoint_name = config["endpoint_name"]
-experiment_id = config['experiment_id']
+experiment_path = config['experiment_path']
 
 # COMMAND ----------
 
@@ -292,8 +292,21 @@ experiment_id = config['experiment_id']
 
 # DBTITLE 1,make sure to provide a local absolute path
 import mlflow
-# mlflow.create_experiment(name=experiment_id)
-mlflow.set_experiment(f"/Users/yang.yang@databricks.com/CCF_Workshop/{experiment_id}")
+
+#: plan a, setup with default artifact location on managed mlflow-tracking server
+experiment_info = mlflow.set_experiment(experiment_path)
+
+#: plan b, setup with your DIY, use mlflow.create_experiment()
+# Create with custom configuration
+# experiment_path = mlflow.create_experiment(
+#     "production-models",
+#     artifact_location="s3://my-bucket/experiments/",
+#     tags={"team": "data-science", "environment": "prod"},
+# )
+
+# COMMAND ----------
+
+experiment_info
 
 # COMMAND ----------
 
