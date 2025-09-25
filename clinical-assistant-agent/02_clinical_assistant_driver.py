@@ -12,7 +12,8 @@
 # MAGIC
 # MAGIC ## Prerequisites
 # MAGIC
-# MAGIC - Address all `TODO`s in this notebook.
+# MAGIC - All `TODO`s in this notebook you can skip. We already make them work for this example.
+# MAGIC - They are for later expansion, e.g., different tools.
 
 # COMMAND ----------
 
