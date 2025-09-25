@@ -62,7 +62,7 @@ model.predict({"messages": [{"role": "user", "content": f"What enrollment inform
 # MAGIC
 # MAGIC You can edit the requests or expected responses in your evaluation dataset and run evaluation as you iterate your agent, leveraging mlflow to track the computed quality metrics.
 # MAGIC
-# MAGIC To evaluate your tool calls, try adding [custom metrics](https://docs.databricks.com/aws/en/generative-ai/agent-evaluation/custom-metrics#develop-custom-metrics).
+# MAGIC To evaluate your tool calls and custom metrics, try adding [tool call metrics](https://docs.databricks.com/aws/en/generative-ai/agent-evaluation/custom-metrics#evaluating-tool-calls) and [custom metrics](https://docs.databricks.com/aws/en/generative-ai/agent-evaluation/custom-metrics#develop-custom-metrics).
 
 # COMMAND ----------
 
