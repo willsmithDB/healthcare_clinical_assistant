@@ -1,6 +1,6 @@
-target_catalog_name = 'yyang'
+target_catalog_name = 'agentic_hackathon'
 
-target_schema_name = 'ccf_workshop'
+target_schema_name = 'yang_yang'
 
 from typing import Any, Generator, Optional, Sequence, Union
 

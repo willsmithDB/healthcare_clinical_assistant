@@ -403,7 +403,7 @@ mlflow.models.predict(
 
 # COMMAND ----------
 
-# %pip install mlflow[databricks]
+# MAGIC %pip install mlflow[databricks]
 
 # COMMAND ----------
 
@@ -431,7 +431,13 @@ client.set_registered_model_alias(model_uc_name, "Champion", uc_registered_model
 
 # DBTITLE 1,Uncomment to create endpoint if needed
 from databricks import agents
-agents.deploy(model_uc_name, uc_registered_model_info.version, tags = {"RemoveAfter": "10-31-2025"})
+
+agents.deploy(
+    model_uc_name,
+    uc_registered_model_info.version,
+    tags={"RemoveAfter": "10-31-2025"},
+    scale_to_zero=True
+)
 
 # COMMAND ----------
 

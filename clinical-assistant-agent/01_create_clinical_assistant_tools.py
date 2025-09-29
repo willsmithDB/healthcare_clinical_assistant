@@ -45,6 +45,18 @@ model_uc_name = config["model_uc_name"]
 alias = config["alias"]
 endpoint_name = config["endpoint_name"]
 
+# Allows us to reference these values directly in the SQL/Python function creation
+dbutils.widgets.text("source_catalog_name", defaultValue=source_catalog_name)
+dbutils.widgets.text("source_schema_name", defaultValue=source_schema_name)
+dbutils.widgets.text("target_catalog_name", defaultValue=target_catalog_name)
+dbutils.widgets.text("target_schema_name", defaultValue=target_schema_name)
+dbutils.widgets.text("service_date", defaultValue=service_date)
+
+dbutils.widgets.text("claim_id", defaultValue=claim_id)
+dbutils.widgets.text("patient_id", defaultValue=patient_id)
+dbutils.widgets.text("diagnosis_code", defaultValue=diagnosis_code)
+dbutils.widgets.text("ndc_code", defaultValue=ndc_code)
+
 # COMMAND ----------
 
 # DBTITLE 1,Parameter Configs

@@ -1,4 +1,25 @@
 # Databricks notebook source
+# MAGIC %md
+# MAGIC #Evaluating Agents with Databricks
+# MAGIC
+# MAGIC It is easy to evaluate agents in Databricks because the platform provides built-in tools and integrations that simplify evaluating agents using custom metrics, the use of LLM judges, monitoring, testing, and comparing agent performance. In this notebok you will learn the following: 
+# MAGIC
+# MAGIC - How to define agent guidelines
+# MAGIC - How to create custom scoring 
+# MAGIC - How to use and test LLM judges
+# MAGIC - How to provide human feedback and labeling
+# MAGIC
+# MAGIC
+# MAGIC ![Evaluation_overview](./evaluation_overview.png)
+# MAGIC
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Installation and set up 
+
+# COMMAND ----------
+
 # MAGIC %pip install -qqqq -U -r requirements.txt
 # MAGIC
 # MAGIC dbutils.library.restartPython()
@@ -22,28 +43,19 @@ ndc_code = config["ndc_code"]
 model_uc_name = config["model_uc_name"]
 alias = config["alias"]
 endpoint_name = config["endpoint_name"]
-experiment_path = config['experiment_path']
+experiment_id = config['experiment_path']
 label_users = config["label_users"]
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC # Load back the model and experiment
-
-# COMMAND ----------
-
+# DBTITLE 1,Set experiment_id if needed
 import mlflow 
-experiment_info = mlflow.set_experiment(experiment_path)
-
-# COMMAND ----------
-
-experiment_info
+mlflow.set_experiment(experiment_id)
 
 # COMMAND ----------
 
 import mlflow
 client = mlflow.MlflowClient()
-
 client.get_model_version_by_alias(model_uc_name, alias)
 
 # COMMAND ----------
@@ -58,31 +70,17 @@ model.predict({"messages": [{"role": "user", "content": f"What enrollment inform
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC # Evaluate the agent with [Agent Evaluation](https://docs.databricks.com/generative-ai/agent-evaluation/index.html)
+# MAGIC # [Agent Evaluation](https://docs.databricks.com/generative-ai/agent-evaluation/index.html)
 # MAGIC
 # MAGIC You can edit the requests or expected responses in your evaluation dataset and run evaluation as you iterate your agent, leveraging mlflow to track the computed quality metrics.
 # MAGIC
-# MAGIC To evaluate your tool calls and custom metrics, try adding [tool call metrics](https://docs.databricks.com/aws/en/generative-ai/agent-evaluation/custom-metrics#evaluating-tool-calls) and [custom metrics](https://docs.databricks.com/aws/en/generative-ai/agent-evaluation/custom-metrics#develop-custom-metrics).
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ### Since we dont have any eval dataset yet and we are too lazy to write our own, e.g., even 10 rows, we are gonna synthesize the eval dataset leveraging the `generate_evals_df` function.
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC __Note:__ We need to provide `docs` argument to the `generate_evals_df` function later as context for generation. For `docs`, it requires two fields:
-# MAGIC - content
-# MAGIC - doc_uri
+# MAGIC To evaluate your tool calls, try adding [custom metrics](https://docs.databricks.com/generative-ai/agent-evaluation/custom-metrics.html#evaluating-tool-calls).
 # MAGIC
-# MAGIC ref: 
-# MAGIC 1. https://docs.databricks.com/aws/en/generative-ai/agent-evaluation/synthesize-evaluation-set
-# MAGIC 2. https://docs.databricks.com/aws/en/generative-ai/agent-evaluation/evaluation-set
+# MAGIC ##### Note: We will test with the specified patient_id to reduce the amount of data we are processing for now. 
 
 # COMMAND ----------
 
-# DBTITLE 1,Generate the docs
+# DBTITLE 1,Querying data for specified patient ID
 docs = spark.sql(
     f"""
     SELECT
@@ -110,16 +108,31 @@ display(docs)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC **A Hint:**
-# MAGIC If you are lazy and you dont want to manually type the 'agent_description' and 'question_guidelines' content below. Consider utilize the Databricks Assistant on your right panel to write for you. Just copy & paste.
-# MAGIC
-# MAGIC Now it already has content filled in. You can proceed like usual.
+# MAGIC ### Since we dont have any eval dataset yet and we are too lazy to write our own, e.g., even 10 rows, we are gonna synthesize the eval dataset leveraging the `generate_evals_df` function.
 
 # COMMAND ----------
 
-# DBTITLE 1,Synthesize Eval dataset
-from databricks.agents.evals import generate_evals_df
+# MAGIC %md
+# MAGIC __Note:__ We need to provide `docs` argument to the `generate_evals_df` function later as context for generation. For `docs`, it requires two fields:
+# MAGIC - content
+# MAGIC - doc_uri
+# MAGIC
+# MAGIC ref: 
+# MAGIC 1. https://docs.databricks.com/aws/en/generative-ai/agent-evaluation/synthesize-evaluation-set
+# MAGIC 2. https://docs.databricks.com/aws/en/generative-ai/agent-evaluation/evaluation-set
 
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Evaluation Data
+# MAGIC The code below generates an evaluation dataset. In reality this can be a list of questions/prompts input to the agent by users, with a human generated response or a human reviewed response that has been generated by an llm. The dataset used for evalution should consists of potential questions and the associated _**accurate**_ answers to those questions.
+# MAGIC
+
+# COMMAND ----------
+
+# DBTITLE 1,Creating an evaluation dataset
+from databricks.agents.evals import generate_evals_df
+#generate data
 eval_data = generate_evals_df(
   docs, 
   num_evals=10,   
@@ -138,32 +151,34 @@ eval_data = generate_evals_df(
   
   """
 )
+#save evaluation data generated
+spark.createDataFrame(eval_data).write.mode("append").saveAsTable(f"{target_catalog_name}.{target_schema_name}.clinical_assistant_eval_data")
 
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC __Let's take a look at the evals that we generated:__
-
-# COMMAND ----------
-
+#display the evaluation data generated
 display(eval_data)
 
 # COMMAND ----------
 
-# DBTITLE 1,eval dataset I/O
-spark.createDataFrame(eval_data).write.mode("append").saveAsTable(f"{target_catalog_name}.{target_schema_name}.clinical_assistant_eval_data")
-
-# COMMAND ----------
-
 # MAGIC %md
-# MAGIC ## Define Scorers
-# MAGIC We are now going to use mlflow 3.x for the newest features!
+# MAGIC ## Use of MLflow 3 for Agent Evaluation
 # MAGIC
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC For @mlflow.trace details, ref: https://docs.databricks.com/aws/en/mlflow3/genai/tracing/data-model
+# MAGIC The code below uses MLflow for the following: 
+# MAGIC - Trace evaluations
+# MAGIC - Define guidelines for factual accuracy, clarity, and conciseness
+# MAGIC - Create a custom scorer to assess relevance
+# MAGIC - Test LLM Judges
+# MAGIC
+# MAGIC ### When to use Automated Feedback/Evaluation ? 
+# MAGIC The use of human-in-the-loop (HITL) versus LLM-as-a-Judge depends on the complexity, stakes, and required nuance of the evaluation task. Both approaches offer unique strengths and face distinct limitations.
+# MAGIC
+# MAGIC #### Reliability of LLM-as-a-Judge
+# MAGIC **Strengths:** LLMs can assess factual correctness, coherence, and many quality attributes at scale, offering rapid, consistent, and cost-effective judgment for large datasets or low-risk domains.
+# MAGIC
+# MAGIC **Limitations:** LLM judges can exhibit bias, lack deep domain knowledge, and sometimes miss subtle errors or context-specific pitfalls that humans catch. Their reliability may drop with complex, multi-step reasoning or nuanced subjective tasks.
+# MAGIC
+# MAGIC **Best practice:** LLM-as-a-Judge is effective for initial screening, bulk evaluation, and cases where high throughput and consistent rubrics matter. However, its outputs should be regularly benchmarked against human raters—especially if the evaluation shapes user experience, safety, or high-value business outcomes.
+# MAGIC
+# MAGIC **Continuous oversight:** Even as LLM judges improve, periodic human evaluation remains essential for calibration, identification of systematic failures, and validating the ongoing robustness of automated metrics.
 
 # COMMAND ----------
 
@@ -178,7 +193,12 @@ def evaluate_model(messages: dict) -> dict:
 
 # COMMAND ----------
 
-# DBTITLE 1,import default scorers and Define the guidelines for our evaluation
+# MAGIC %md
+# MAGIC ### Define Guidelines
+
+# COMMAND ----------
+
+# DBTITLE 1,Define the guidelines for our evaluation
 from databricks.agents.evals import judges, metric
 from mlflow.genai.scorers import (
     Correctness, RetrievalSufficiency,  
@@ -191,6 +211,11 @@ guidelines = {
     # supports str or list[str]
     "accuracy": "Response must be factually accurate",
 }
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Create a custom scorer to assess relevance
 
 # COMMAND ----------
 
@@ -225,20 +250,12 @@ def is_message_relevant(inputs: dict[str, Any], outputs: str) -> Feedback:
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Test Individual Scorer
-
-# COMMAND ----------
-
-eval_data["inputs"][0]
-
-# COMMAND ----------
-
-eval_data.display()
+# MAGIC ### Test Individual Judges
 
 # COMMAND ----------
 
 from mlflow.genai import judges
-
+eval_data["inputs"][0]
 result = judges.is_correct(
     request=eval_data["inputs"][0],
     response=model.predict(eval_data["inputs"][0]),
@@ -246,6 +263,11 @@ result = judges.is_correct(
 )
 print(f"Judge result: {result.value}")
 print(f"Rationale: {result.rationale}")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Combine MLflow Evaluation Metrics and Conduct Automatic Evaluations
 
 # COMMAND ----------
 
@@ -276,8 +298,53 @@ results.tables['eval_results'].display()
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC # Human in the Loop
 # MAGIC
-# MAGIC https://learn.microsoft.com/en-us/azure/databricks/mlflow3/genai/eval-monitor/build-eval-dataset#seeding-an-evaluation-dataset-with-synthetic-data
+# MAGIC The _mlflow.genai.labeling_ module in Databricks provides tools for creating and managing labeling sessions, which are structured frameworks for collecting expert feedback—such as assessments, expectations, or quality ratings—on GenAI (generative AI) application traces. This enables systematic human evaluation of AI-generated outputs, driving improvements and more reliable metrics by programmatically or visually organizing feedback collection from assigned users within the MLflow ecosystem.
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### When to use Human Feedback? 
+# MAGIC The use of human-in-the-loop (HITL) versus LLM-as-a-Judge depends on the complexity, stakes, and required nuance of the evaluation task. Both approaches offer unique strengths and face distinct limitations.
+# MAGIC
+# MAGIC #### When to Use Human-in-the-Loop:
+# MAGIC - High-risk or high-stakes domains: HITL is critical in legal, healthcare, finance, or when mistakes have significant consequences, as human expertise mitigates risks and ensures nuanced, ethical decisions.
+# MAGIC - Ambiguous, subjective, or open-ended tasks: Human reviewers excel in tasks requiring domain knowledge, ethical judgment, or understanding subtle qualities like tone, creativity, and social context.
+# MAGIC - Low tolerance for error: If anything less than near-perfect accuracy is unacceptable, human verification is needed for the final 10–20% of critical workflows.
+# MAGIC - Bias and safety monitoring: Ethical, bias, and safety issues often need human sensitivity that automation can miss.
+# MAGIC - Continuous improvement and supervision: Humans provide feedback for model fine-tuning, guide new evaluation criteria, and monitor when LLMs evolve or encounter unfamiliar scenarios.
+# MAGIC
+# MAGIC #### How much human involvement?
+# MAGIC
+# MAGIC - For typical business automation and creative work, LLMs might handle 70–90% of cases, with humans focused on exceptions, high-priority reviews, or periodic audits.
+# MAGIC - For mission-critical or heavily regulated domains, human review may be required for every instance, or at least as a secondary check for LLM-flagged “difficult” cases.
+# MAGIC
+# MAGIC #### Recommended Balance between Human Feedback and Automated Feedback
+# MAGIC - Use LLM-as-a-Judge for preliminary filtering, large-scale benchmarking, and “clear-cut” evaluations.
+# MAGIC - Apply HITL for high-risk, subjective, or ambiguous cases—ideally focusing human expertise where it is most impactful.
+# MAGIC - Audit and recalibrate both approaches through regular human review, especially as domains, models, or criteria evolve.
+# MAGIC
+
+# COMMAND ----------
+
+spark.sql(f"""
+CREATE OR REPLACE TABLE {target_catalog_name}.{target_schema_name}.augmented_eval_data (
+    dataset_record_id STRING,
+    create_time TIMESTAMP,
+    created_by STRING,
+    last_update_time TIMESTAMP,
+    last_updated_by STRING,
+    source STRUCT<
+        human: STRUCT<user_name: STRING>,
+        document: STRUCT<doc_uri: STRING, content: STRING>,
+        trace: STRUCT<trace_id: STRING>
+    >,
+    inputs STRING,
+    expectations STRING,
+    tags MAP<STRING, STRING>
+)
+""")
 
 # COMMAND ----------
 
@@ -285,6 +352,11 @@ results.tables['eval_results'].display()
 # MAGIC ## Built the Final Eval Dataset with the previous synthesized dataset and the evaluation traces columns above
 # MAGIC
 # MAGIC ref: https://learn.microsoft.com/en-us/azure/databricks/mlflow3/genai/eval-monitor/build-eval-dataset
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Create Eval Dataset Object for Humans to provide feedback
 
 # COMMAND ----------
 
@@ -316,9 +388,11 @@ except Exception as e:
     else:
         print(f"Caught error: {e}")
 
+
+
 # COMMAND ----------
 
-#: same as the 'result' variable above, we now fetch it using mlflow.search_traces() cause we logged the traces before. 
+# DBTITLE 1,Create traces for feedback and preview human evaluation data
 traces = mlflow.search_traces(
     filter_string="attributes.status = 'OK'",
     order_by=["attributes.timestamp_ms DESC"],
@@ -327,27 +401,8 @@ traces = mlflow.search_traces(
 
 print(f"Found {len(traces)} successful traces")
 
-# COMMAND ----------
-
-traces.display()
-
-# COMMAND ----------
-
-# DBTITLE 1,expect to be empty now
-eval_dataset.to_df()
-
-# COMMAND ----------
-
-# DBTITLE 1,then we merge traces into it
-eval_dataset = eval_dataset.merge_records(traces)
+eval_dataset.merge_records(traces)
 print(f"Added {len(traces)} records to evaluation dataset")
-
-# COMMAND ----------
-
-# DBTITLE 1,now we should have records from traces
-eval_dataset.to_df()
-
-# COMMAND ----------
 
 # Preview the dataset
 eval_df = eval_dataset.to_df()
@@ -356,6 +411,10 @@ print(f"Total records: {len(eval_df)}")
 print("\nSample record:")
 sample = eval_df.iloc[0]
 print(f"Inputs: {sample['inputs']}")
+
+# COMMAND ----------
+
+eval_df.display()
 
 # COMMAND ----------
 
@@ -369,38 +428,11 @@ spark.table(f"{uc_schema}.{evaluation_dataset_table_name}").display()
 
 # COMMAND ----------
 
-# DBTITLE 1,Skip this
-# spark.sql(f"""
-# CREATE OR REPLACE TABLE {target_catalog_name}.{target_schema_name}.augmented_eval_data (
-#     dataset_record_id STRING,
-#     create_time TIMESTAMP,
-#     created_by STRING,
-#     last_update_time TIMESTAMP,
-#     last_updated_by STRING,
-#     source STRUCT<
-#         human: STRUCT<user_name: STRING>,
-#         document: STRUCT<doc_uri: STRING, content: STRING>,
-#         trace: STRUCT<trace_id: STRING>
-#     >,
-#     inputs STRING,
-#     expectations STRING,
-#     tags MAP<STRING, STRING>
-# )
-# """)
-
-# COMMAND ----------
-
 # MAGIC %md
-# MAGIC ## Human Feedback / Labeling
+# MAGIC ### Create Schema and Session for humans to provide feedback
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC ### Create Schema and Session
-
-# COMMAND ----------
-
-# DBTITLE 1,Create MLflow Labeling Session
 import mlflow
 import mlflow.genai.labeling as labeling
 import mlflow.genai.label_schemas as schemas
@@ -440,39 +472,6 @@ print(f"Session ID: {session.labeling_session_id}")
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC > __Note:__ If you click the below session url, the new Chat-to-review session should be empty for now, but you can use 'Chat' to live chat and vibe test.
-# MAGIC
-# MAGIC Specifically, 
-# MAGIC
-# MAGIC Live chat messages in the labeling session (using the "Chat" feature) are not recorded as part of the official human feedback or labeling data. The chat is intended for real-time collaboration and discussion among reviewers, but only explicit labels, comments, and feedback submitted through the labeling UI are stored and associated with the dataset or traces.
-
-# COMMAND ----------
-
-session.url
-
-# COMMAND ----------
-
-# DBTITLE 1,Utility to delete sessions if needed
-# import mlflow.genai.labeling as labeling
-
-# # Find the session to delete by name
-# all_sessions = labeling.get_labeling_sessions()
-# session_to_delete = None
-# for session in all_sessions:
-#     if session.name == "labeled_clinical_assistant_review_oct_2025":
-#         session_to_delete = session
-#         break
-
-# if session_to_delete:
-#     # Delete the session (removes from Review App)
-#     review_app = labeling.delete_labeling_session(session_to_delete)
-#     print(f"Deleted session: {session_to_delete.name}")
-# else:
-#     print("Session not found")
-
-# COMMAND ----------
-
-# MAGIC %md
 # MAGIC Since now Chat-to-review session should have no pending need-to-review items, we need to add them by:
 # MAGIC
 # MAGIC 1. Use add_traces() to add specific, possibly filtered, trace records for review.
@@ -482,7 +481,6 @@ session.url
 
 # COMMAND ----------
 
-# DBTITLE 1,Add Traces and Review App URL
 # Add traces for labeling
 traces = mlflow.search_traces(
     run_id=session.mlflow_run_id
@@ -512,7 +510,7 @@ print(f"Review app URL: {app.url}")
 
 # COMMAND ----------
 
-# DBTITLE 1,Sync the eval_data with your SME labels
+# DBTITLE 1,Sync the eval_data and evaluate
 from mlflow.genai import datasets
 import mlflow
 
@@ -522,11 +520,15 @@ session.sync(to_dataset=f"{target_catalog_name}.{target_schema_name}.{evaluation
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC ## Final Evaluation Dataset (containing both Automatic and Human Feedback)
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC Now we can re-evaluate the agent with your annotated labels
 
 # COMMAND ----------
 
-# DBTITLE 1,re-evaluate with updated dataset
 # Use dataset for evaluation
 dataset = datasets.get_dataset(f"{target_catalog_name}.{target_schema_name}.{evaluation_dataset_table_name}")
 
@@ -549,7 +551,3 @@ results = mlflow.genai.evaluate(
         is_message_relevant
     ]
 )
-
-# COMMAND ----------
-
-

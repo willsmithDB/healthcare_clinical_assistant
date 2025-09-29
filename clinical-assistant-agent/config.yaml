@@ -1,28 +1,15 @@
-# Source catalog and schema (where HealthVerity data is stored. It is free dataset from Databricks Marketplace)
-source_catalog_name: "HealthVerity_Claims_Sample_Patient_Dataset"
-source_schema_name: "hv_claims_sample"
-
-# Target catalog and schema (where UC functions will be registered as well as saving other assets we wiil build during the workshop)
-target_catalog_name: "yyang"
-target_schema_name: "ccf_workshop"
-
-#: Sample data parameters for querying the HealthVerity dataset (used in testing the agent). You dont have to change this section.
-service_date: "2021-12-21"
-claim_id: "12390dfb568442cb957d5b3cfefe1119"
-patient_id: "4baf3314e4a181c5effcf2751fbe1e21"
-diagnosis_code: "Z79899"
-ndc_code: "65162027250"
-
-#: Model configuration
-# model uc name should follow below example, e.g., target_catalog_name.target_schema_name.model_name. You can name your own 'model_name' part, but use the target_catalog_name and target_schema_name values from above lines.
-model_uc_name: "yyang.ccf_workshop.healthverity_clinical_assistant_dev"
-# you can keep this alias, which refers to your production-ready model
-alias: "Champion"
-# endpoint_name can be anything, currently it is not really used in the notebook.
-endpoint_name: "clinical_assistant_healthverity"
-
-#: the path for storing your mlflow experiment. Please follow the example 'experiment_path' format filled below. Note, it is an absolute path to your workspace folder. Usually you can put within your project code folder root path.
-experiment_path: "/Users/yang.yang@databricks.com/CCF_Workshop/ccf_workshop_demo"
-
-#: your email
-label_users: ["yang.yang@databricks.com"]
+source_catalog_name: HealthVerity_Claims_Sample_Patient_Dataset
+source_schema_name: hv_claims_sample
+target_catalog_name: agentic_hackathon
+target_schema_name: yang_yang
+service_date: '2021-12-21'
+claim_id: 12390dfb568442cb957d5b3cfefe1119
+patient_id: 4baf3314e4a181c5effcf2751fbe1e21
+diagnosis_code: Z79899
+ndc_code: '65162027250'
+model_uc_name: agentic_hackathon.yang_yang.healthverity_clinical_assistant_dev
+alias: Champion
+endpoint_name: yang_yang_databricks_com-clinical_assistant_healthverity
+experiment_path: /Workspace/Users/yang.yang@databricks.com/_agentic_hackathon/yyang_experiment 
+label_users:
+- yang.yang@databricks.com
