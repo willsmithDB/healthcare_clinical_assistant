@@ -2,6 +2,8 @@
 # MAGIC %md
 # MAGIC # Building Agent Systems with Databricks -- HealthVerity Patient Journey Demo
 # MAGIC
+# MAGIC ## NOTE: These notebooks will not run with RUN ALL commands. 
+# MAGIC
 # MAGIC ## Part 1 - Architect Your First Agent
 # MAGIC This agent will follow the workflow of a healthcare provider analyzing patient data to illustrate various agent capabilities using HealthVerity's real-world healthcare dataset. 
 # MAGIC We'll assume the provider would be trying to quickly understand a patient's healthcare journey across medical claims, pharmacy data, and procedures to make informed patient decisions.
