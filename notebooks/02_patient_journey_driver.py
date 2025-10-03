@@ -13,6 +13,8 @@
 # MAGIC ## Prerequisites
 # MAGIC
 # MAGIC - Address all `TODO`s in this notebook.
+# MAGIC
+# MAGIC #### NOTE: These notebooks will not run with RUN ALL commands. 
 
 # COMMAND ----------
 
@@ -26,6 +28,12 @@
 # MAGIC Below we define our agent code in a single cell, enabling us to easily write it to a local Python file for subsequent logging and deployment using the `%%writefile` magic command.
 # MAGIC
 # MAGIC For more examples of tools to add to your agent, see [docs](https://docs.databricks.com/generative-ai/agent-framework/agent-tool.html).
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Be sure to change path on line 65 to the correct UC path. 
+# MAGIC - Because this is a writefile command, you cannot parameterize that line
 
 # COMMAND ----------
 
@@ -69,7 +77,7 @@
 # MAGIC # LLM_ENDPOINT_NAME = "databricks-meta-llama-3-3-70b-instruct"
 # MAGIC llm = ChatDatabricks(endpoint=LLM_ENDPOINT_NAME)
 # MAGIC
-# MAGIC system_prompt = """You are a healthcare assistant specialized in analyzing real-world healthcare data. You will be asked questions about patient enrollment, medical claims, pharmacy claims, diagnoses, and procedures from HealthVerity's healthcare dataset. You should only answer questions relevant to this topic and should politely decline to answer any off topic questions. Be concise and clear - no need to repeat the question.
+# MAGIC system_prompt = """You are a healthcare patient journey assistant specialized in analyzing real-world healthcare data. You will be asked questions about patient enrollment, medical claims, pharmacy claims, diagnoses, and procedures from HealthVerity's healthcare dataset. You should only answer questions relevant to this topic and should politely decline to answer any off topic questions. Be concise and clear - no need to repeat the question.
 # MAGIC
 # MAGIC Use the tools at your disposal to answer the user's question. If you don't know the answer, say so. If the tools fail to execute, say so, and say why if you can. If it isn't clear which tool should be used, ask the user and summarize the tools that you can use.
 # MAGIC
@@ -92,8 +100,8 @@
 # MAGIC tools = []
 # MAGIC
 # MAGIC #You can use UDFs in Unity Catalog as agent tools
-# MAGIC # HealthVerity clinical assistant tools
-# MAGIC uc_tool_names = ["users.will_smith.*"]
+# MAGIC # HealthVerity patient journey tools
+# MAGIC uc_tool_names = ["CATALOG.SCHEMA.*"]
 # MAGIC uc_toolkit = UCFunctionToolkit(function_names=uc_tool_names)
 # MAGIC tools.extend(uc_toolkit.tools)
 # MAGIC
@@ -333,7 +341,7 @@ with mlflow.start_run():
 mlflow.models.predict(
     model_uri=f"runs:/{logged_agent_info.run_id}/agent",
     input_data={"messages": [{"role": "user", "content": f"What enrollment information do you have for patient {patient_id}?"}]},
-    env_manager="local",
+    env_manager="uv",
 )
 
 # COMMAND ----------
@@ -376,31 +384,3 @@ from databricks import agents
 # MAGIC ## Next steps
 # MAGIC
 # MAGIC After your agent is deployed, you can chat with it in AI playground to perform additional checks, share it with SMEs in your organization for feedback, or embed it in a production application. See [docs](https://docs.databricks.com/generative-ai/deploy-agent.html) for details
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## We can also work with a Genie room with optimized Text-2-SQL on UC tables augmented with AI generated table metadata /comments!
-
-# COMMAND ----------
-
-from IPython.display import HTML, display
-
-# Create HTML link to AI Playground
-html_link = f'<a href="https://e2-demo-field-eng.cloud.databricks.com/genie/rooms/01f0574f6d4f11558af894a950b8bf19" target="_blank">Go to Genie Room</a>'
-display(HTML(html_link))
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## We can also do Key Information Extraction using Agent Bricks on all of our clinical notes. 
-
-# COMMAND ----------
-
-# Create HTML link to AI Playground
-html_link = f'<a href="https://e2-demo-field-eng.cloud.databricks.com/ml/bricks/kie/use/9a577aad-4adc-4a33-9dbb-88883e6c66b8?o=1444828305810485">Go to Agent Bricks</a>'
-display(HTML(html_link))
-
-# COMMAND ----------
-
-

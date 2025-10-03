@@ -1,10 +1,12 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # Building Agent Systems with Databricks -- HealthVerity Clinical Assistant Demo
+# MAGIC # Building Agent Systems with Databricks -- HealthVerity Patient Journey Demo
+# MAGIC
+# MAGIC ## NOTE: These notebooks will not run with RUN ALL commands. 
 # MAGIC
 # MAGIC ## Part 1 - Architect Your First Agent
 # MAGIC This agent will follow the workflow of a healthcare provider analyzing patient data to illustrate various agent capabilities using HealthVerity's real-world healthcare dataset. 
-# MAGIC We'll assume the provider would be trying to quickly understand a patient's healthcare journey across medical claims, pharmacy data, and procedures to make informed clinical decisions.
+# MAGIC We'll assume the provider would be trying to quickly understand a patient's healthcare journey across medical claims, pharmacy data, and procedures to make informed patient decisions.
 # MAGIC
 # MAGIC ### 1.1 Build Simple Tools
 # MAGIC - **SQL Functions**: Create queries that access HealthVerity's real-world healthcare data including medical claims, pharmacy claims, diagnoses, and procedures.
@@ -84,7 +86,7 @@ spark.sql(f"CREATE SCHEMA IF NOT EXISTS {target_catalog_name}.{target_schema_nam
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC # HealthVerity Clinical Assistant Workflow
+# MAGIC # HealthVerity Patient Journey Workflow
 # MAGIC
 # MAGIC Below is a structured outline of the **key steps** a healthcare provider might follow when **analyzing patient data using HealthVerity's real-world healthcare dataset**. 
 # MAGIC ---

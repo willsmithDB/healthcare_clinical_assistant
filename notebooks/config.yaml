@@ -3,8 +3,8 @@ source_catalog_name: "HealthVerity_Claims_Sample_Patient_Dataset"
 source_schema_name: "hv_claims_sample"
 
 # Target catalog and schema (where UC functions will be registered)
-target_catalog_name: "CATALOG"
-target_schema_name: "SCHEMA"
+target_catalog_name: "CHANGE_ME"
+target_schema_name: "CHANGE_ME"
 
 # Sample data parameters for HealthVerity dataset
 service_date: "2021-12-21"
@@ -14,9 +14,9 @@ diagnosis_code: "Z79899"
 ndc_code: "65162027250"
 
 # Model configuration
-model_uc_name: "CATALOG.SCHEMA.healthverity_clinical_assistant_dev"
+model_uc_name: "CATALOG.SCHEMA.healthverity_patient_journey_dev"
 alias: "Champion"
-endpoint_name: "clinical_assistant_healthverity"
+endpoint_name: "healthverity_patient_journey"
 
 experiment_id: "CHANGE_ME"
 label_users: ["user@example.com"]
