@@ -37,7 +37,7 @@ LLM_ENDPOINT_NAME = "databricks-claude-3-7-sonnet"
 # LLM_ENDPOINT_NAME = "databricks-meta-llama-3-3-70b-instruct"
 llm = ChatDatabricks(endpoint=LLM_ENDPOINT_NAME)
 
-system_prompt = """You are a healthcare assistant specialized in analyzing real-world healthcare data. You will be asked questions about patient enrollment, medical claims, pharmacy claims, diagnoses, and procedures from HealthVerity's healthcare dataset. You should only answer questions relevant to this topic and should politely decline to answer any off topic questions. Be concise and clear - no need to repeat the question.
+system_prompt = """You are a healthcare patient journey assistant specialized in analyzing real-world healthcare data. You will be asked questions about patient enrollment, medical claims, pharmacy claims, diagnoses, and procedures from HealthVerity's healthcare dataset. You should only answer questions relevant to this topic and should politely decline to answer any off topic questions. Be concise and clear - no need to repeat the question.
 
 Use the tools at your disposal to answer the user's question. If you don't know the answer, say so. If the tools fail to execute, say so, and say why if you can. If it isn't clear which tool should be used, ask the user and summarize the tools that you can use.
 
@@ -60,7 +60,7 @@ If there is a request including a DATE, please always return the full date when 
 tools = []
 
 #You can use UDFs in Unity Catalog as agent tools
-# HealthVerity clinical assistant tools
+# HealthVerity patient journey tools
 uc_tool_names = ["users.will_smith.*"]
 uc_toolkit = UCFunctionToolkit(function_names=uc_tool_names)
 tools.extend(uc_toolkit.tools)

@@ -29,6 +29,12 @@
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ### Be sure to change path on line 65 to the correct UC path. 
+# MAGIC - Because this is a writefile command, you cannot parameterize that line
+
+# COMMAND ----------
+
 # MAGIC %%writefile agent.py
 # MAGIC from typing import Any, Generator, Optional, Sequence, Union
 # MAGIC
@@ -69,7 +75,7 @@
 # MAGIC # LLM_ENDPOINT_NAME = "databricks-meta-llama-3-3-70b-instruct"
 # MAGIC llm = ChatDatabricks(endpoint=LLM_ENDPOINT_NAME)
 # MAGIC
-# MAGIC system_prompt = """You are a healthcare assistant specialized in analyzing real-world healthcare data. You will be asked questions about patient enrollment, medical claims, pharmacy claims, diagnoses, and procedures from HealthVerity's healthcare dataset. You should only answer questions relevant to this topic and should politely decline to answer any off topic questions. Be concise and clear - no need to repeat the question.
+# MAGIC system_prompt = """You are a healthcare patient journey assistant specialized in analyzing real-world healthcare data. You will be asked questions about patient enrollment, medical claims, pharmacy claims, diagnoses, and procedures from HealthVerity's healthcare dataset. You should only answer questions relevant to this topic and should politely decline to answer any off topic questions. Be concise and clear - no need to repeat the question.
 # MAGIC
 # MAGIC Use the tools at your disposal to answer the user's question. If you don't know the answer, say so. If the tools fail to execute, say so, and say why if you can. If it isn't clear which tool should be used, ask the user and summarize the tools that you can use.
 # MAGIC
@@ -92,7 +98,7 @@
 # MAGIC tools = []
 # MAGIC
 # MAGIC #You can use UDFs in Unity Catalog as agent tools
-# MAGIC # HealthVerity clinical assistant tools
+# MAGIC # HealthVerity patient journey tools
 # MAGIC uc_tool_names = ["users.will_smith.*"]
 # MAGIC uc_toolkit = UCFunctionToolkit(function_names=uc_tool_names)
 # MAGIC tools.extend(uc_toolkit.tools)
@@ -333,7 +339,7 @@ with mlflow.start_run():
 mlflow.models.predict(
     model_uri=f"runs:/{logged_agent_info.run_id}/agent",
     input_data={"messages": [{"role": "user", "content": f"What enrollment information do you have for patient {patient_id}?"}]},
-    env_manager="local",
+    env_manager="uv",
 )
 
 # COMMAND ----------
