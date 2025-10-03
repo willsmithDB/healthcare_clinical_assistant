@@ -13,6 +13,8 @@
 # MAGIC ## Prerequisites
 # MAGIC
 # MAGIC - Address all `TODO`s in this notebook.
+# MAGIC
+# MAGIC #### NOTE: These notebooks will not run with RUN ALL commands. 
 
 # COMMAND ----------
 
@@ -99,7 +101,7 @@
 # MAGIC
 # MAGIC #You can use UDFs in Unity Catalog as agent tools
 # MAGIC # HealthVerity patient journey tools
-# MAGIC uc_tool_names = ["users.will_smith.*"]
+# MAGIC uc_tool_names = ["CATALOG.SCHEMA.*"]
 # MAGIC uc_toolkit = UCFunctionToolkit(function_names=uc_tool_names)
 # MAGIC tools.extend(uc_toolkit.tools)
 # MAGIC
@@ -382,31 +384,3 @@ from databricks import agents
 # MAGIC ## Next steps
 # MAGIC
 # MAGIC After your agent is deployed, you can chat with it in AI playground to perform additional checks, share it with SMEs in your organization for feedback, or embed it in a production application. See [docs](https://docs.databricks.com/generative-ai/deploy-agent.html) for details
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## We can also work with a Genie room with optimized Text-2-SQL on UC tables augmented with AI generated table metadata /comments!
-
-# COMMAND ----------
-
-from IPython.display import HTML, display
-
-# Create HTML link to AI Playground
-html_link = f'<a href="https://e2-demo-field-eng.cloud.databricks.com/genie/rooms/01f0574f6d4f11558af894a950b8bf19" target="_blank">Go to Genie Room</a>'
-display(HTML(html_link))
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## We can also do Key Information Extraction using Agent Bricks on all of our clinical notes. 
-
-# COMMAND ----------
-
-# Create HTML link to AI Playground
-html_link = f'<a href="https://e2-demo-field-eng.cloud.databricks.com/ml/bricks/kie/use/9a577aad-4adc-4a33-9dbb-88883e6c66b8?o=1444828305810485">Go to Agent Bricks</a>'
-display(HTML(html_link))
-
-# COMMAND ----------
-
-
