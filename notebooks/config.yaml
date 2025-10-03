@@ -16,7 +16,7 @@ ndc_code: "65162027250"
 # Model configuration
 model_uc_name: "CATALOG.SCHEMA.healthverity_patient_journey_dev"
 alias: "Champion"
-endpoint_name: "patient_journey_healthverity"
+endpoint_name: "healthverity_patient_journey"
 
 experiment_id: "CHANGE_ME"
 label_users: ["user@example.com"]
