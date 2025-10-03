@@ -1,4 +1,4 @@
-# Databricks HLS Medical Journey Agent
+# Databricks HLS Patient Journey Agent
 
 A comprehensive healthcare AI assistant built on Databricks using HealthVerity's real-world healthcare dataset. This project demonstrates how to create, deploy, evaluate, and monitor clinical AI agents that can help healthcare professionals analyze patient healthcare journeys including medical claims, pharmacy data, diagnoses, and procedures.
 
@@ -6,7 +6,7 @@ A comprehensive healthcare AI assistant built on Databricks using HealthVerity's
 
 ## 🏥 Overview
 
-The Clinical Assistant is designed to follow the workflow of a healthcare provider analyzing patient data to make informed clinical decisions. It enables healthcare professionals to quickly understand a patient's healthcare journey across medical claims, pharmacy data, diagnoses, and procedures using HealthVerity's real-world healthcare dataset.
+The Patient Journey Assistant is designed to follow the workflow of a healthcare provider analyzing patient data to make informed clinical decisions. It enables healthcare professionals to quickly understand a patient's healthcare journey across medical claims, pharmacy data, diagnoses, and procedures using HealthVerity's real-world healthcare dataset.
 
 ### Key Capabilities
 
@@ -259,4 +259,4 @@ This repository is for demonstration purposes. For questions or contributions, p
 
 ## ⚠️ Disclaimer
 
-This HealthVerity clinical assistant is for demonstration and research purposes only. It should not be used for actual clinical decision-making without proper validation and approval from healthcare professionals and regulatory bodies. The system processes de-identified real-world healthcare data and should be used in compliance with all applicable healthcare data privacy regulations.
+This HealthVerity patient journey assistant is for demonstration and research purposes only. It should not be used for actual clinical decision-making without proper validation and approval from healthcare professionals and regulatory bodies. The system processes de-identified real-world healthcare data and should be used in compliance with all applicable healthcare data privacy regulations.
